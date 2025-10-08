@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Task Manager',
+  title: 'Welcome Prasad',
   description: 'A simple task management application',
 }
 

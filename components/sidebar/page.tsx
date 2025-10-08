@@ -11,7 +11,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gray-900 text-white border-r border-red-500 h-screen fixed">
+    <aside className="w-64 bg-gray-900 text-white border-r border-red-500 h-screen fixed z-50">
       <div className="p-6">
         <h2 className="text-xl text-red-500 font-bold mb-8">Zignuts Taskora</h2>
         <nav className="space-y-2">
