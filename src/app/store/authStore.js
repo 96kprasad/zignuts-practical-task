@@ -1,24 +1,23 @@
 import { create } from 'zustand'
 import { apiClient } from '../../../utils/api'
 
-let isInitializing = false
-
 export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
-  loading: true,
+  loading: false,
+  initialized: false,
   
-  initialize: async () => {
-    if (isInitializing) return
-    isInitializing = true
+  initAuth: async () => {
+    const state = get()
+    if (state.initialized) return
+    
+    set({ initialized: true, loading: false })
     
     try {
       const response = await apiClient.auth.verify()
       set({ user: response.data.user, isAuthenticated: true, loading: false })
     } catch (error) {
       set({ user: null, isAuthenticated: false, loading: false })
-    } finally {
-      isInitializing = false
     }
   },
   
@@ -32,10 +31,10 @@ export const useAuthStore = create((set, get) => ({
   },
   
   login: async (email, password) => {
-    set({ loading: true })
+    set({ loading: false })
     try {
       const response = await apiClient.auth.login(email, password)
-      set({ user: response.data.user, isAuthenticated: true, loading: false })
+      set({ user: response.data.user, isAuthenticated: true, loading: false, initialized: true })
       return { success: true }
     } catch (error) {
       set({ loading: false })
@@ -44,7 +43,7 @@ export const useAuthStore = create((set, get) => ({
   },
   
   register: async (email, password, name) => {
-    set({ loading: true })
+    set({ loading: false })
     try {
       await apiClient.auth.register(email, password, name)
       set({ loading: false })
