@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : '',
+  baseURL: '',
   timeout: 30000, // Increased to 30 seconds
   headers: {
     'Content-Type': 'application/json',
