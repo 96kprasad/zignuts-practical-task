@@ -4,14 +4,26 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../store/authStore'
 
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, hydrated, hydrate } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    hydrate()
+  }, [])
+
+  useEffect(() => {
+    if (hydrated && !isAuthenticated) {
       router.replace('/')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, hydrated, router])
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return null

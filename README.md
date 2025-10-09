@@ -1,46 +1,60 @@
 # Task Manager Dashboard
 
-A full-stack Task Manager Dashboard built with Next.js, React.js, Firebase Firestore, and Tailwind CSS. All CRUD operations and authentication are handled securely via Next.js API routes.
+A full-stack Task Manager Dashboard built with Next.js, React.js, Firebase Firestore, and Tailwind CSS. Features complete authentication system, project management, and task tracking with responsive design.
 
-## Tech Stack
+## 🚀 Live Demo
+
+**Deployed on Vercel**: [https://your-vercel-app.vercel.app](https://your-vercel-app.vercel.app)
+
+## ✨ Features
+
+- 🔐 **Authentication System**: Login/Register with Firebase Auth
+- 📊 **Dashboard**: Overview with stats cards and project summaries
+- 📁 **Project Management**: Create, view, and manage projects
+- ✅ **Task Management**: Full CRUD operations for tasks
+- 🎨 **Modern UI**: Clean, responsive design with Tailwind CSS
+- 📱 **Mobile Responsive**: Works seamlessly on all devices
+- 🔒 **Protected Routes**: Secure access to dashboard features
+- 💾 **Persistent Sessions**: Stay logged in after page refresh
+- 🚀 **Fast Performance**: Optimized with Next.js 15
+
+## 🛠️ Tech Stack
 
 - **Frontend**: React 18 + Next.js 15.5.4
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand
 - **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth
-- **API**: Next.js API Routes
-- **Deployment**: Vercel (recommended)
+- **Authentication**: Firebase Auth + Custom API Routes
+- **HTTP Client**: Axios
+- **Notifications**: Notistack
+- **Icons**: Material-UI Icons
+- **Deployment**: Vercel
 
-## Prerequisites
+## 📋 Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Firebase project with Firestore and Authentication enabled
 
-## Setup Instructions
+## ⚡ Quick Start
 
 ### 1. Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-username/zignuts-practical-task.git
 cd zignuts-practical-task
 ```
 
 ### 2. Install Dependencies
 ```bash
 npm install
-# or
-yarn install
 ```
 
 ### 3. Firebase Setup
 
-#### Create Firebase Project
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Create a new project
-3. Enable Authentication (Email/Password)
-4. Enable Firestore Database
-5. Set Firestore rules to allow authenticated users:
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com)
+2. Enable **Authentication** (Email/Password method)
+3. Enable **Firestore Database**
+4. Set Firestore rules:
 
 ```javascript
 rules_version = '2';
@@ -53,14 +67,9 @@ service cloud.firestore {
 }
 ```
 
-#### Get Firebase Config
-1. Go to Project Settings → General
-2. Add a web app
-3. Copy the configuration
-
 ### 4. Environment Variables
 
-Create `.env.local` file in root directory:
+Create `.env.local` file:
 
 ```env
 # Firebase Configuration
@@ -71,7 +80,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
-# JWT Secret (for API routes)
+# JWT Secret
 JWT_SECRET=your_jwt_secret_key
 ```
 
@@ -79,60 +88,100 @@ JWT_SECRET=your_jwt_secret_key
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Visit [http://localhost:3000](http://localhost:3000)
 
 ## 📁 Project Structure
 
 ```
 src/
 ├── app/
-│   ├── (auth)/
-│   │   ├── login/
-│   │   └── register/
-│   ├── (dashboard)/
-│   │   ├── dashboard/
-│   │   ├── projects/
-│   │   └── tasks/
-│   ├── api/
-│   │   ├── auth/
-│   │   ├── projects/
-│   │   └── tasks/
-│   ├── components/
-│   │   ├── authentication/
-│   │   ├── project/
-│   │   └── modals/
-│   ├── lib/
-│   │   └── firebase.js
-│   └── store/
-│       ├── authStore.js
-│       └── projectStore.js
-├── utils/
-└── styles/
+│   ├── (auth)/                 # Auth pages (login/register)
+│   ├── (dashboard)/            # Protected dashboard pages
+│   │   ├── dashboard/          # Main dashboard
+│   │   ├── projects/           # Projects page
+│   │   └── tasks/              # Tasks page
+│   ├── api/                    # API routes
+│   │   ├── auth/               # Authentication endpoints
+│   │   ├── projects/           # Project CRUD endpoints
+│   │   └── tasks/              # Task CRUD endpoints
+│   ├── components/             # Reusable components
+│   │   ├── authentication/     # Auth forms
+│   │   ├── dashboard/          # Dashboard components
+│   │   ├── project/            # Project components
+│   │   ├── task/               # Task components
+│   │   ├── modal/              # Modal components
+│   │   └── common/             # Common components
+│   ├── store/                  # Zustand stores
+│   │   ├── authStore.js        # Authentication state
+│   │   └── projectStore.js     # Project state
+│   └── types/                  # TypeScript interfaces
+├── utils/                      # Utility functions
+│   ├── api.js                  # Axios configuration
+│   ├── notification/           # Toast notifications
+│   └── helper.js               # Helper functions
+└── styles/                     # Global styles
 ```
 
-## Security Features
+## 🔐 Authentication Flow
 
-- ✅ Server-side authentication verification
-- ✅ Protected API routes with user validation
-- ✅ Secure cookie-based sessions
-- ✅ Environment variables for sensitive data
-- ✅ No direct Firebase SDK exposure to frontend
+1. **Registration**: Create account with email/password
+2. **Login**: Authenticate and get session cookie
+3. **Session Persistence**: Stay logged in after refresh
+4. **Protected Routes**: Automatic redirect for unauthorized access
+5. **Logout**: Clear session and redirect to login
 
-## Responsive Design
+## 📊 Key Features
 
-- ✅ Mobile-first approach
-- ✅ Responsive navigation
-- ✅ Adaptive layouts for different screen sizes
-- ✅ Touch-friendly interfaces
+### Dashboard
+- Project overview cards
+- Task statistics
+- Recent activity summary
+- Quick action buttons
 
-## Testing
+### Project Management
+- Create new projects
+- View project details
+- Project status tracking
+- Task assignment
+
+### Task Management
+- Create, edit, delete tasks
+- Task status updates
+- Priority levels
+- Due date tracking
+- Project association
+
+## 🎨 UI Components
+
+- **Responsive Design**: Mobile-first approach
+- **Modern Cards**: Clean project and task cards
+- **Interactive Modals**: Create/edit forms
+- **Toast Notifications**: User feedback
+- **Loading States**: Smooth user experience
+- **Action Buttons**: Intuitive controls
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Push code to GitHub
+2. Connect repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically
+
+### Manual Build
 
 ```bash
-# Run development server
+npm run build
+npm start
+```
+
+## 🔧 Development
+
+```bash
+# Development server
 npm run dev
 
 # Build for production
@@ -140,25 +189,57 @@ npm run build
 
 # Start production server
 npm start
+
+# Type checking
+npm run type-check
 ```
 
-## Contributing
+## 📱 Responsive Breakpoints
+
+- **Mobile**: < 768px
+- **Tablet**: 768px - 1024px
+- **Desktop**: > 1024px
+
+## 🛡️ Security Features
+
+- ✅ Server-side authentication verification
+- ✅ Protected API routes
+- ✅ Secure session management
+- ✅ Input validation and sanitization
+- ✅ Environment variable protection
+- ✅ CORS configuration
+
+## 🎯 Performance Optimizations
+
+- ✅ Next.js App Router
+- ✅ Server-side rendering
+- ✅ Code splitting
+- ✅ Image optimization
+- ✅ Lazy loading
+- ✅ Efficient state management
+
+## 🐛 Known Issues
+
+- None currently reported
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
 
-## Developer
+## 👨‍💻 Developer
 
 **Prasad Sapkal**  
+Full-Stack Developer  
 Zignuts Practical Task Implementation
 
 ---
 
-**Note**: This is a development version. For production deployment, ensure proper security configurations and environment setup.
+**Built with ❤️ using Next.js and Firebase**

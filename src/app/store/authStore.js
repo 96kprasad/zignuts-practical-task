@@ -5,20 +5,22 @@ export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
   loading: false,
-  initialized: false,
+  hydrated: false,
   
-  initAuth: async () => {
-    const state = get()
-    if (state.initialized) return
-    
-    set({ initialized: true, loading: false })
-    
-    try {
-      const response = await apiClient.auth.verify()
-      set({ user: response.data.user, isAuthenticated: true, loading: false })
-    } catch (error) {
-      set({ user: null, isAuthenticated: false, loading: false })
+  hydrate: () => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('auth-user')
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser)
+          set({ user, isAuthenticated: true, hydrated: true })
+          return
+        } catch (error) {
+          localStorage.removeItem('auth-user')
+        }
+      }
     }
+    set({ hydrated: true })
   },
   
   logout: async () => {
@@ -27,14 +29,17 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       console.error('Logout error:', error)
     }
+    localStorage.removeItem('auth-user')
     set({ user: null, isAuthenticated: false, loading: false })
   },
   
   login: async (email, password) => {
-    set({ loading: false })
+    set({ loading: true })
     try {
       const response = await apiClient.auth.login(email, password)
-      set({ user: response.data.user, isAuthenticated: true, loading: false, initialized: true })
+      const user = response.data.user
+      localStorage.setItem('auth-user', JSON.stringify(user))
+      set({ user, isAuthenticated: true, loading: false })
       return { success: true }
     } catch (error) {
       set({ loading: false })
@@ -43,7 +48,7 @@ export const useAuthStore = create((set, get) => ({
   },
   
   register: async (email, password, name) => {
-    set({ loading: false })
+    set({ loading: true })
     try {
       await apiClient.auth.register(email, password, name)
       set({ loading: false })
