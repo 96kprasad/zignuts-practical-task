@@ -5,7 +5,7 @@ import { EditButton, DeleteButton } from '../action/page'
 import TaskModal from '../modal/TaskModal'
 
 interface Task {
-  id: number
+  id?: number
   title: string
   status: 'pending' | 'completed'
   priority?: 'low' | 'medium' | 'high'
@@ -17,7 +17,7 @@ interface TaskTableProps {
   tasks: Task[]
 }
 
-export default function TaskTable({ tasks }: TaskTableProps) {
+export default function TaskTable({ tasks = [] }: TaskTableProps) {
   const [showModal, setShowModal] = useState(false)
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add')
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -71,7 +71,7 @@ export default function TaskTable({ tasks }: TaskTableProps) {
     return <span className={`${baseClasses} ${colors[priority as keyof typeof colors]}`}>{priority}</span>
   }
 
-  const columns: Column[] = [
+  const columns: Column<Task>[] = [
     {
       key: 'title',
       label: 'Task',
@@ -81,19 +81,19 @@ export default function TaskTable({ tasks }: TaskTableProps) {
           <div className={`w-2 h-2 rounded-full mr-3 ${
             row.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'
           }`}></div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-900">{String(value)}</div>
         </div>
       )
     },
     {
       key: 'status',
       label: 'Status',
-      render: (value) => getStatusBadge(value)
+      render: (value) => getStatusBadge(String(value))
     },
     {
       key: 'priority',
       label: 'Priority',
-      render: (value) => getPriorityBadge(value)
+      render: (value) => getPriorityBadge(value as string)
     },
     {
       key: 'dueDate',
@@ -126,13 +126,13 @@ export default function TaskTable({ tasks }: TaskTableProps) {
     }
   ]
 
-  const completedCount = tasks.filter(t => t.status === 'completed').length
-  const pendingCount = tasks.filter(t => t.status === 'pending').length
+  const completedCount = tasks?.filter(t => t.status === 'completed').length || 0
+  const pendingCount = tasks?.filter(t => t.status === 'pending').length || 0
 
   const statsCards: StatsCard[] = [
     {
       title: 'Total Tasks',
-      value: tasks.length,
+      value: tasks?.length || 0,
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -177,7 +177,7 @@ export default function TaskTable({ tasks }: TaskTableProps) {
         </button>
       </div>
       
-      <DataTable
+      <DataTable<Task>
         data={tasks}
         columns={columns}
         filters={filters}

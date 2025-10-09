@@ -53,14 +53,14 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
     return total > 0 ? Math.round((completed / total) * 100) : 0
   }
 
-  const columns: Column[] = [
+  const columns: Column<Project>[] = [
     {
       key: 'name',
       label: 'Project',
       sortable: true,
       render: (value, row) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">{value}</div>
+          <div className="text-sm font-medium text-gray-900">{String(value)}</div>
           <div className="text-sm text-gray-500">{row.description}</div>
         </div>
       )
@@ -68,12 +68,12 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
     {
       key: 'status',
       label: 'Status',
-      render: (value) => getStatusBadge(value)
+      render: (value) => getStatusBadge(String(value))
     },
     {
       key: 'priority',
       label: 'Priority',
-      render: (value) => getPriorityBadge(value)
+      render: (value) => getPriorityBadge(String(value))
     },
     {
       key: 'progress',
@@ -101,10 +101,11 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
       key: 'team',
       label: 'Team',
       render: (value) => {
-        if (!value || !Array.isArray(value)) return <span className="text-gray-400">-</span>
+        const teamArray = value as string[]
+        if (!teamArray || !Array.isArray(teamArray)) return <span className="text-gray-400">-</span>
         return (
           <div className="flex -space-x-1">
-            {value.slice(0, 3).map((member: string, index: number) => (
+            {teamArray.slice(0, 3).map((member: string, index: number) => (
               <div
                 key={index}
                 className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white"
@@ -113,9 +114,9 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
                 {member.charAt(0)}
               </div>
             ))}
-            {value.length > 3 && (
+            {teamArray.length > 3 && (
               <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-medium border-2 border-white">
-                +{value.length - 3}
+                +{teamArray.length - 3}
               </div>
             )}
           </div>
@@ -183,7 +184,7 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
   ]
 
   return (
-    <DataTable
+    <DataTable<Project>
       data={projects}
       columns={columns}
       filters={filters}

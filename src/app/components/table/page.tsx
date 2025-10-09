@@ -1,11 +1,11 @@
 'use client'
 import { useState, ReactNode } from 'react'
 
-export interface Column {
+export interface Column<T = Record<string, unknown>> {
   key: string
   label: string
   sortable?: boolean
-  render?: (value: any, row: any) => ReactNode
+  render?: (value: unknown, row: T) => ReactNode
   width?: string
 }
 
@@ -22,22 +22,22 @@ export interface StatsCard {
   icon?: ReactNode
 }
 
-interface DataTableProps {
-  data: any[]
-  columns: Column[]
+interface DataTableProps<T = Record<string, unknown>> {
+  data: T[]
+  columns: Column<T>[]
   searchable?: boolean
   searchPlaceholder?: string
   filters?: Filter[]
   statsCards?: StatsCard[]
   pagination?: boolean
   itemsPerPage?: number
-  actions?: (row: any) => ReactNode
+  actions?: (row: T) => ReactNode
   emptyMessage?: string
 }
 
-export default function DataTable({
-  data,
-  columns,
+export default function DataTable<T = Record<string, unknown>>({
+  data = [],
+  columns = [],
   searchable = true,
   searchPlaceholder = "Search...",
   filters = [],
@@ -46,25 +46,25 @@ export default function DataTable({
   itemsPerPage = 10,
   actions,
   emptyMessage = "No data found"
-}: DataTableProps) {
+}: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [currentPage, setCurrentPage] = useState(1)
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
 
   // Filter data
-  const filteredData = data.filter(item => {
+  const filteredData = (data || []).filter(item => {
     // Search filter
     const matchesSearch = !searchable || !searchTerm || 
-      columns.some(col => {
-        const value = item[col.key]
-        return value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      (columns || []).some(col => {
+        const value = (item as Record<string, unknown>)[col.key]
+        return value && String(value).toLowerCase().includes(searchTerm.toLowerCase())
       })
 
     // Custom filters
     const matchesFilters = filters.every(filter => {
       const filterValue = filterValues[filter.key]
-      return !filterValue || filterValue === 'all' || item[filter.key] === filterValue
+      return !filterValue || filterValue === 'all' || (item as Record<string, unknown>)[filter.key] === filterValue
     })
 
     return matchesSearch && matchesFilters
@@ -74,11 +74,15 @@ export default function DataTable({
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig) return 0
     
-    const aValue = a[sortConfig.key]
-    const bValue = b[sortConfig.key]
+    const aValue = (a as Record<string, unknown>)[sortConfig.key]
+    const bValue = (b as Record<string, unknown>)[sortConfig.key]
     
-    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
-    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
+    // Convert to string for comparison
+    const aStr = String(aValue || '')
+    const bStr = String(bValue || '')
+    
+    if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1
+    if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1
     return 0
   })
 
@@ -177,7 +181,7 @@ export default function DataTable({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {columns.map(column => (
+                {(columns || []).map(column => (
                   <th
                     key={column.key}
                     className={`px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${
@@ -205,11 +209,11 @@ export default function DataTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedData.map((row, index) => (
                 <tr key={index} className="hover:bg-gray-50 transition-colors">
-                  {columns.map(column => (
+                  {(columns || []).map(column => (
                     <td key={column.key} className="px-6 py-4">
                       {column.render 
-                        ? column.render(row[column.key], row)
-                        : row[column.key] || '-'
+                        ? column.render((row as Record<string, unknown>)[column.key], row)
+                        : String((row as Record<string, unknown>)[column.key] || '-')
                       }
                     </td>
                   ))}

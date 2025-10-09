@@ -1,23 +1,11 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useProjectStore } from '../../store/projectStore'
-
-interface Task {
-  id: number
-  title: string
-  status: 'pending' | 'completed'
-}
-
-interface Project {
-  id: number
-  name: string
-  description: string
-  tasks: Task[]
-}
+import { Project, ProjectCardProps } from '../../../types'
 
 interface ProjectListItemProps {
   project: Project
-  onAddTask?: (projectId: number) => void
+  onAddTask?: (projectId: string | number) => void
 }
 
 export default function ProjectListItem({ project, onAddTask }: ProjectListItemProps) {

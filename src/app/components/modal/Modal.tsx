@@ -4,7 +4,7 @@ import { ReactNode, useEffect } from 'react'
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  title?: string
+  title?: string | ReactNode
   children: ReactNode
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   showCloseButton?: boolean
@@ -74,7 +74,7 @@ export default function Modal({
         {(title || showCloseButton) && (
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             {title && (
-              <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+              <div className="text-xl font-semibold text-gray-900">{title}</div>
             )}
             {showCloseButton && (
               <button

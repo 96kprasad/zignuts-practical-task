@@ -6,6 +6,7 @@ import { EditButton, DeleteButton } from '../../components/action/page'
 import EditTaskModal from '../../components/EditTaskModal'
 import ConfirmationDialog from '../../components/common/ConfirmationDialog'
 import { showSuccess, showError } from '../../../../utils/notification'
+import { capitalize } from '../../../../utils/helper'
 
 export default function TasksPage() {
   const [currentPage, setCurrentPage] = useState(1)
@@ -16,12 +17,12 @@ export default function TasksPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  
+
   const searchParams = useSearchParams()
   const projectId = searchParams.get('projectId')
-  
+
   const { selectedProject, allProjects } = useProjectStore()
-  
+
   useEffect(() => {
     if (projectId && selectedProject && selectedProject.id === projectId) {
       // Use stored project data
@@ -42,7 +43,7 @@ export default function TasksPage() {
       fetchAllTasks()
     }
   }, [projectId, selectedProject, allProjects])
-  
+
   const fetchTasks = async (projectId) => {
     try {
       setLoading(true)
@@ -57,7 +58,7 @@ export default function TasksPage() {
       setLoading(false)
     }
   }
-  
+
   const fetchAllTasks = async () => {
     try {
       setLoading(true)
@@ -72,34 +73,34 @@ export default function TasksPage() {
       setLoading(false)
     }
   }
-  
+
   const handleEditTask = (task) => {
     setSelectedTask(task)
     setIsEditModalOpen(true)
   }
-  
+
   const handleTaskUpdated = (updatedTask) => {
-    setTasks(prev => prev.map(task => 
+    setTasks(prev => prev.map(task =>
       task.id === updatedTask.id ? updatedTask : task
     ))
   }
-  
+
   const handleDeleteClick = (task) => {
     setTaskToDelete(task)
     setIsDeleteDialogOpen(true)
   }
-  
+
   const handleDeleteConfirm = async () => {
     if (!taskToDelete) return
-    
+
     setDeleteLoading(true)
     try {
       const response = await fetch(`/api/tasks?id=${taskToDelete.id}`, {
         method: 'DELETE'
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         showSuccess(data.message || 'Task deleted successfully!')
         setTasks(prev => prev.filter(task => task.id !== taskToDelete.id))
@@ -117,13 +118,13 @@ export default function TasksPage() {
   }
   const itemsPerPage = 10
   const totalPages = Math.ceil(tasks.length / itemsPerPage)
-  
+
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentTasks = tasks.slice(startIndex, endIndex)
-  
-  const pageTitle = selectedProject && projectId 
-    ? `${selectedProject.name} - Tasks` 
+
+  const pageTitle = selectedProject && projectId
+    ? `${selectedProject.name} - Tasks`
     : 'All Tasks'
 
   return (
@@ -155,7 +156,7 @@ export default function TasksPage() {
             </div>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -189,15 +190,13 @@ export default function TasksPage() {
                   </td>
                 </tr>
               ) : currentTasks.map((task, index) => (
-                <tr key={task.id} className={`transition-colors group ${
-                  index % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'
-                }`}>
+                <tr key={task.id} className={`transition-colors group ${index % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'
+                  }`}>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium ${
-                          task.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium ${task.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
+                          }`}>
                           {task.status === 'completed' ? '✓' : index + startIndex + 1}
                         </div>
                       </div>
@@ -208,28 +207,24 @@ export default function TasksPage() {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      task.status === 'completed' 
-                        ? 'bg-green-100 text-green-800 border border-green-200' 
-                        : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full mr-2 ${
-                        task.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'
-                      }`}></span>
-                      {task.status}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${task.status === 'completed'
+                      ? 'bg-green-100 text-green-800 border border-green-200'
+                      : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                      }`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${task.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'
+                        }`}></span>
+                      {task.status === 'pending' ? 'Todo' : capitalize(task.status) || 'Unknown'}
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      task.priority === 'high' ? 'bg-red-100 text-red-800 border border-red-200' :
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${task.priority === 'high' ? 'bg-red-100 text-red-800 border border-red-200' :
                       task.priority === 'medium' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
-                      'bg-gray-100 text-gray-800 border border-gray-200'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full mr-2 ${
-                        task.priority === 'high' ? 'bg-red-500' :
+                        'bg-gray-100 text-gray-800 border border-gray-200'
+                      }`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${task.priority === 'high' ? 'bg-red-500' :
                         task.priority === 'medium' ? 'bg-orange-500' : 'bg-gray-500'
-                      }`}></span>
-                      {task.priority}
+                        }`}></span>
+                      {capitalize(task.priority) || 'Unknown'}
                     </span>
                   </td>
                   <td className="py-4 px-6">
@@ -246,12 +241,12 @@ export default function TasksPage() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <EditButton 
-                        size="small" 
+                      <EditButton
+                        size="small"
                         onClick={() => handleEditTask(task)}
                       />
-                      <DeleteButton 
-                        size="small" 
+                      <DeleteButton
+                        size="small"
                         onClick={() => handleDeleteClick(task)}
                       />
                     </div>
@@ -261,7 +256,7 @@ export default function TasksPage() {
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         <div className="flex items-center justify-between mt-6 mb-8 px-4">
           <div className="text-sm text-gray-700">
@@ -275,24 +270,23 @@ export default function TasksPage() {
             >
               Previous
             </button>
-            
+
             {[...Array(totalPages)].map((_, index) => {
               const page = index + 1
               return (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentPage === page
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                    }`}
                 >
                   {page}
                 </button>
               )
             })}
-            
+
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
@@ -303,15 +297,15 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
-      
-      <EditTaskModal 
+
+      <EditTaskModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onTaskUpdated={handleTaskUpdated}
         task={selectedTask}
       />
-      
-      <ConfirmationDialog 
+
+      <ConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}

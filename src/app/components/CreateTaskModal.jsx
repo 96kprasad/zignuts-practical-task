@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Modal from './Modal'
+import Button from './button/page'
 import { showSuccess, showError } from '../../../utils/notification'
 
 export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projectId, projectName }) {
@@ -20,8 +21,8 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
       const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: title.trim(), 
+        body: JSON.stringify({
+          title: title.trim(),
           description: description.trim(),
           status,
           priority,
@@ -59,7 +60,7 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
       {projectName && (
         <p className="text-sm text-gray-600 mb-6">Project: <span className="font-medium text-indigo-600">{projectName}</span></p>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Task Title
@@ -128,20 +129,18 @@ export default function CreateTaskModal({ isOpen, onClose, onTaskCreated, projec
           />
         </div>
         <div className="flex space-x-3 pt-4">
-          <button
-            type="button"
+          <Button
+            variant="danger"
+            caption="Cancel"
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
+            size="sm"
+          />
+          <Button
+            variant="primary"
+            caption={loading ? 'Creating...' : 'Create Task'}
             disabled={loading || !title.trim() || !description.trim()}
-            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loading ? 'Creating...' : 'Create Task'}
-          </button>
+            onClick={handleSubmit} size="sm"
+          />
         </div>
       </form>
     </Modal>

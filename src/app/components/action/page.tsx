@@ -97,3 +97,7 @@ export const SaveButton = ({ onClick, disabled, size = 'medium', className = '' 
     <SaveIcon style={iconSizes[size]} />
   </button>
 )
+
+export default function ActionButtons() {
+  return null
+}

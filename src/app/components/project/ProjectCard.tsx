@@ -1,24 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useProjectStore } from '../../store/projectStore'
-
-interface Task {
-  id: number
-  title: string
-  status: 'pending' | 'completed'
-}
-
-interface Project {
-  id: number
-  name: string
-  description: string
-  tasks: Task[]
-}
-
-interface ProjectCardProps {
-  project: Project
-  onAddTask?: (projectId: number) => void
-}
+import { ProjectCardProps } from '../../../types'
 
 export default function ProjectCard({ project, onAddTask }: ProjectCardProps) {
   const router = useRouter()
