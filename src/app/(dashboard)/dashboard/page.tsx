@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react'
 import ProjectCard from '../../components/project/ProjectCard'
 import ProjectListItem from '../../components/project/ProjectListItem'
+import CreateProjectModal from '../../components/CreateProjectModal'
+import CreateTaskModal from '../../components/CreateTaskModal'
+import { useProjectStore } from '../../store/projectStore'
+import { showError } from '../../../../utils/notification'
 import { SVGIcons } from '../../../../utils/svgConstants'
 
 interface Task {
@@ -20,55 +24,62 @@ interface Project {
 export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [selectedProjectName, setSelectedProjectName] = useState<string>('')
 
   useEffect(() => {
-    // Mock data - replace with API call
-    const mockProjects: Project[] = [
-      {
-        id: 1,
-        name: 'Website Redesign',
-        description: 'Complete redesign of company website with modern UI/UX',
-        tasks: [
-          { id: 1, title: 'Create wireframes', status: 'completed' },
-          { id: 2, title: 'Design mockups', status: 'completed' },
-          { id: 3, title: 'Frontend development', status: 'pending' },
-          { id: 4, title: 'Backend integration', status: 'pending' }
-        ]
-      },
-      {
-        id: 2,
-        name: 'Mobile App Development',
-        description: 'Native mobile app for iOS and Android platforms',
-        tasks: [
-          { id: 5, title: 'Setup project structure', status: 'completed' },
-          { id: 6, title: 'Implement authentication', status: 'pending' },
-          { id: 7, title: 'Create main screens', status: 'pending' }
-        ]
-      },
-      {
-        id: 3,
-        name: 'Database Migration',
-        description: 'Migrate legacy database to new cloud infrastructure',
-        tasks: [
-          { id: 8, title: 'Analyze current schema', status: 'completed' },
-          { id: 9, title: 'Design new schema', status: 'completed' },
-          { id: 10, title: 'Data migration script', status: 'completed' },
-          { id: 11, title: 'Testing and validation', status: 'pending' }
-        ]
-      },
-      {
-        id: 4,
-        name: 'Mobile App my Manager',
-        description: 'Native mobile app for iOS and Android platforms',
-        tasks: [
-          { id: 5, title: 'Setup project structure', status: 'completed' },
-          { id: 6, title: 'Implement authentication', status: 'pending' },
-          { id: 7, title: 'Create main screens', status: 'pending' }
-        ]
-      },
-    ]
-    setProjects(mockProjects)
+    fetchProjects()
   }, [])
+
+  const setAllProjects = useProjectStore(state => state.setAllProjects)
+  
+  const fetchProjects = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/projects')
+      
+      if (response.ok) {
+        const data = await response.json()
+        setProjects(data.projects)
+        setAllProjects(data.projects) // Store in global state
+        if (data.message) {
+          console.log('✅', data.message)
+        }
+      } else {
+        const errorData = await response.json()
+        console.error('❌ Fetch Error:', errorData.error)
+        showError(`Failed to load projects: ${errorData.error}${errorData.details ? ` - ${errorData.details}` : ''}`)
+      }
+    } catch (error) {
+      console.error('❌ Network Error:', error)
+      showError(`Network Error: ${error.message}. Please check your connection and Firebase configuration.`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleProjectCreated = (newProject) => {
+    setProjects(prev => [...prev, newProject])
+  }
+
+  const handleAddTask = (projectId: number) => {
+    const project = projects.find(p => p.id === projectId)
+    setSelectedProjectId(projectId)
+    setSelectedProjectName(project?.name || '')
+    setIsTaskModalOpen(true)
+  }
+
+  const handleTaskCreated = (newTask) => {
+    // Update project's tasks array
+    setProjects(prev => prev.map(project => 
+      project.id === selectedProjectId 
+        ? { ...project, tasks: [...project.tasks, newTask] }
+        : project
+    ))
+  }
 
   return (
     <div className="p-6">
@@ -82,7 +93,10 @@ export default function DashboardPage() {
             <p className="text-gray-600 text-lg">Here's what's happening with your projects today.</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg hover:shadow-xl">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg hover:shadow-xl"
+            >
               + New Project
             </button>
           </div>
@@ -106,7 +120,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Completed Tasks</p>
-                <p className="text-3xl font-bold">{projects.reduce((acc, p) => acc + p.tasks.filter(t => t.status === 'completed').length, 0)}</p>
+                <p className="text-3xl font-bold">{projects.reduce((acc, p) => acc + (p.tasks || []).filter(t => t.status === 'completed').length, 0)}</p>
               </div>
               <div className="bg-white/20 p-3 rounded-xl">
                 <SVGIcons.Tasks className="w-6 h-6" />
@@ -118,7 +132,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-100 text-sm font-medium">Pending Tasks</p>
-                <p className="text-3xl font-bold">{projects.reduce((acc, p) => acc + p.tasks.filter(t => t.status === 'pending').length, 0)}</p>
+                <p className="text-3xl font-bold">{projects.reduce((acc, p) => acc + (p.tasks || []).filter(t => t.status === 'pending').length, 0)}</p>
               </div>
               <div className="bg-white/20 p-3 rounded-xl">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +146,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Progress</p>
-                <p className="text-3xl font-bold">{Math.round((projects.reduce((acc, p) => acc + p.tasks.filter(t => t.status === 'completed').length, 0) / projects.reduce((acc, p) => acc + p.tasks.length, 0)) * 100) || 0}%</p>
+                <p className="text-3xl font-bold">{Math.round((projects.reduce((acc, p) => acc + (p.tasks || []).filter(t => t.status === 'completed').length, 0) / projects.reduce((acc, p) => acc + (p.tasks || []).length, 0)) * 100) || 0}%</p>
               </div>
               <div className="bg-white/20 p-3 rounded-xl">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,20 +187,36 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        {viewMode === 'grid' ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map(project => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} onAddTask={handleAddTask} />
             ))}
           </div>
         ) : (
           <div className="space-y-4">
             {projects.map(project => (
-              <ProjectListItem key={project.id} project={project} />
+              <ProjectListItem key={project.id} project={project} onAddTask={handleAddTask} />
             ))}
           </div>
         )}
-      </div>
+      </div>      
+      <CreateProjectModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
+      />      
+      <CreateTaskModal 
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onTaskCreated={handleTaskCreated}
+        projectId={selectedProjectId?.toString() || ''}
+        projectName={selectedProjectName}
+      />
     </div>
   )
 }

@@ -1,57 +1,148 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useProjectStore } from '../../store/projectStore'
 import { EditButton, DeleteButton } from '../../components/action/page'
-
-const sampleTasks = [
-  { id: 1, title: 'Complete project setup', status: 'completed', priority: 'high', dueDate: '2024-01-15', project: 'Website Redesign' },
-  { id: 2, title: 'Design user interface mockups', status: 'pending', priority: 'medium', dueDate: '2024-01-20', project: 'Mobile App' },
-  { id: 3, title: 'Implement user authentication', status: 'pending', priority: 'high', dueDate: '2024-01-18', project: 'Website Redesign' },
-  { id: 4, title: 'Write comprehensive unit tests', status: 'pending', priority: 'low', dueDate: '2024-01-25', project: 'API Development' },
-  { id: 5, title: 'Deploy to production environment', status: 'completed', priority: 'medium', dueDate: '2024-01-10', project: 'Database Migration' },
-  { id: 6, title: 'Setup CI/CD pipeline', status: 'completed', priority: 'high', dueDate: '2024-01-12', project: 'DevOps' },
-  { id: 7, title: 'Create API documentation', status: 'pending', priority: 'medium', dueDate: '2024-01-22', project: 'API Development' },
-  { id: 8, title: 'Optimize database queries', status: 'pending', priority: 'low', dueDate: '2024-01-28', project: 'Database Migration' },
-  { id: 9, title: 'Implement push notifications', status: 'pending', priority: 'medium', dueDate: '2024-01-24', project: 'Mobile App' },
-  { id: 10, title: 'Security audit and testing', status: 'completed', priority: 'high', dueDate: '2024-01-08', project: 'Security' },
-  { id: 11, title: 'Create responsive design layouts', status: 'pending', priority: 'medium', dueDate: '2024-01-30', project: 'Website Redesign' },
-  { id: 12, title: 'Implement payment gateway', status: 'pending', priority: 'high', dueDate: '2024-02-05', project: 'E-commerce' },
-  { id: 13, title: 'Setup monitoring and logging', status: 'completed', priority: 'medium', dueDate: '2024-01-14', project: 'DevOps' },
-  { id: 14, title: 'Design database schema', status: 'completed', priority: 'high', dueDate: '2024-01-09', project: 'Database Migration' },
-  { id: 15, title: 'Implement search functionality', status: 'pending', priority: 'medium', dueDate: '2024-02-01', project: 'Website Redesign' },
-  { id: 16, title: 'Create user onboarding flow', status: 'pending', priority: 'low', dueDate: '2024-02-10', project: 'Mobile App' },
-  { id: 17, title: 'Setup load balancing', status: 'pending', priority: 'high', dueDate: '2024-02-03', project: 'DevOps' },
-  { id: 18, title: 'Implement data validation', status: 'completed', priority: 'medium', dueDate: '2024-01-16', project: 'API Development' },
-  { id: 19, title: 'Create admin dashboard', status: 'pending', priority: 'medium', dueDate: '2024-02-08', project: 'Website Redesign' },
-  { id: 20, title: 'Setup backup and recovery', status: 'pending', priority: 'high', dueDate: '2024-02-02', project: 'Database Migration' },
-  { id: 21, title: 'Implement real-time chat', status: 'pending', priority: 'low', dueDate: '2024-02-15', project: 'Mobile App' },
-  { id: 22, title: 'Performance optimization', status: 'completed', priority: 'medium', dueDate: '2024-01-20', project: 'Website Redesign' },
-  { id: 23, title: 'Setup error tracking', status: 'pending', priority: 'medium', dueDate: '2024-02-06', project: 'DevOps' },
-  { id: 24, title: 'Implement file upload system', status: 'pending', priority: 'low', dueDate: '2024-02-12', project: 'API Development' },
-  { id: 25, title: 'Create email notification system', status: 'completed', priority: 'high', dueDate: '2024-01-18', project: 'E-commerce' }
-]
+import EditTaskModal from '../../components/EditTaskModal'
+import ConfirmationDialog from '../../components/common/ConfirmationDialog'
+import { showSuccess, showError } from '../../../../utils/notification'
 
 export default function TasksPage() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [tasks, setTasks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  
+  const searchParams = useSearchParams()
+  const projectId = searchParams.get('projectId')
+  
+  const { selectedProject, allProjects } = useProjectStore()
+  
+  useEffect(() => {
+    if (projectId && selectedProject && selectedProject.id === projectId) {
+      // Use stored project data
+      setTasks(selectedProject.tasks || [])
+      setLoading(false)
+    } else if (projectId) {
+      // Find project in allProjects if selectedProject doesn't match
+      const project = allProjects.find(p => p.id === projectId)
+      if (project) {
+        setTasks(project.tasks || [])
+        setLoading(false)
+      } else {
+        // Fallback: fetch from API
+        fetchTasks(projectId)
+      }
+    } else {
+      // Fetch all tasks
+      fetchAllTasks()
+    }
+  }, [projectId, selectedProject, allProjects])
+  
+  const fetchTasks = async (projectId) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/tasks?projectId=${projectId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTasks(data.tasks || [])
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const fetchAllTasks = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/tasks')
+      if (response.ok) {
+        const data = await response.json()
+        setTasks(data.tasks || [])
+      }
+    } catch (error) {
+      console.error('Error fetching all tasks:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  const handleEditTask = (task) => {
+    setSelectedTask(task)
+    setIsEditModalOpen(true)
+  }
+  
+  const handleTaskUpdated = (updatedTask) => {
+    setTasks(prev => prev.map(task => 
+      task.id === updatedTask.id ? updatedTask : task
+    ))
+  }
+  
+  const handleDeleteClick = (task) => {
+    setTaskToDelete(task)
+    setIsDeleteDialogOpen(true)
+  }
+  
+  const handleDeleteConfirm = async () => {
+    if (!taskToDelete) return
+    
+    setDeleteLoading(true)
+    try {
+      const response = await fetch(`/api/tasks?id=${taskToDelete.id}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        showSuccess(data.message || 'Task deleted successfully!')
+        setTasks(prev => prev.filter(task => task.id !== taskToDelete.id))
+        setIsDeleteDialogOpen(false)
+        setTaskToDelete(null)
+      } else {
+        showError(`${data.error}${data.details ? ` - ${data.details}` : ''}`)
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      showError(`Network Error: ${error.message}. Please check your connection.`)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
   const itemsPerPage = 10
-  const totalPages = Math.ceil(sampleTasks.length / itemsPerPage)
+  const totalPages = Math.ceil(tasks.length / itemsPerPage)
   
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentTasks = sampleTasks.slice(startIndex, endIndex)
+  const currentTasks = tasks.slice(startIndex, endIndex)
+  
+  const pageTitle = selectedProject && projectId 
+    ? `${selectedProject.name} - Tasks` 
+    : 'All Tasks'
 
   return (
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-          Task Management
+          {pageTitle}
         </h1>
-        <p className="text-gray-600 text-lg">Organize, track, and manage all your tasks in one place</p>
+        <p className="text-gray-600 text-lg">
+          {projectId ? `Tasks for ${selectedProject?.name || 'this project'}` : 'Organize, track, and manage all your tasks in one place'}
+        </p>
       </div>
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         {/* Table Header */}
         <div className="bg-gray-900 px-6 py-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">Task List</h3>
+            <h3 className="text-lg font-semibold text-white">
+              {projectId ? `${selectedProject?.name || 'Project'} Tasks` : 'All Tasks'} ({tasks.length})
+            </h3>
             <div className="flex items-center space-x-3">
               <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
                 + Add Task
@@ -85,7 +176,19 @@ export default function TasksPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {currentTasks.map((task, index) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="py-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  </td>
+                </tr>
+              ) : tasks.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-8 text-center text-gray-500">
+                    No tasks found
+                  </td>
+                </tr>
+              ) : currentTasks.map((task, index) => (
                 <tr key={task.id} className={`transition-colors group ${
                   index % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'
                 }`}>
@@ -136,20 +239,20 @@ export default function TasksPage() {
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2">
                       <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-medium text-indigo-600">{task.project.charAt(0)}</span>
+                        <span className="text-xs font-medium text-indigo-600">{(task.projectName || task.project || 'U').charAt(0)}</span>
                       </div>
-                      <span className="text-sm text-gray-900">{task.project}</span>
+                      <span className="text-sm text-gray-900">{task.projectName || task.project || 'Unknown'}</span>
                     </div>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <EditButton 
                         size="small" 
-                        onClick={() => console.log('Edit task:', task.id)}
+                        onClick={() => handleEditTask(task)}
                       />
                       <DeleteButton 
                         size="small" 
-                        onClick={() => console.log('Delete task:', task.id)}
+                        onClick={() => handleDeleteClick(task)}
                       />
                     </div>
                   </td>
@@ -162,7 +265,7 @@ export default function TasksPage() {
         {/* Pagination */}
         <div className="flex items-center justify-between mt-6 mb-8 px-4">
           <div className="text-sm text-gray-700">
-            Showing {startIndex + 1} to {Math.min(endIndex, sampleTasks.length)} of {sampleTasks.length} results
+            Showing {startIndex + 1} to {Math.min(endIndex, tasks.length)} of {tasks.length} results
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -200,6 +303,22 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
+      
+      <EditTaskModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onTaskUpdated={handleTaskUpdated}
+        task={selectedTask}
+      />
+      
+      <ConfirmationDialog 
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        type="delete"
+        itemName={taskToDelete?.title}
+        loading={deleteLoading}
+      />
     </div>
   )
 }

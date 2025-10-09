@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SVGIcons } from '../../../../utils/svgConstants';
 import { useAuthStore } from '../../store/authStore';
+import { showSuccess, showError } from '../../../../utils/notification';
 interface AuthPageProps {
   type: 'login' | 'register';
 }
@@ -18,23 +20,26 @@ export default function AuthPage({ type }: AuthPageProps) {
 
   const isLogin = type === 'login';
 
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (isLogin) {
       const result = await login(formData.email, formData.password);
       if (result.success) {
-        window.location.href = '/dashboard';
+        showSuccess('Login successful! Welcome back.');
+        router.replace('/dashboard');
       } else {
-        alert(result.error || 'Login failed');
+        showError(result.error || 'Login failed');
       }
     } else {
       const result = await register(formData.email, formData.password, formData.name);
       if (result.success) {
-        alert('Registration successful! Please login to continue.');
-        window.location.href = '/';
+        showSuccess('Registration successful! Please login to continue.');
+        router.replace('/');
       } else {
-        alert(result.error || 'Registration failed');
+        showError(result.error || 'Registration failed');
       }
     }
   };

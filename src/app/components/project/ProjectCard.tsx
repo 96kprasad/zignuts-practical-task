@@ -1,3 +1,7 @@
+'use client'
+import { useRouter } from 'next/navigation'
+import { useProjectStore } from '../../store/projectStore'
+
 interface Task {
   id: number
   title: string
@@ -13,15 +17,27 @@ interface Project {
 
 interface ProjectCardProps {
   project: Project
+  onAddTask?: (projectId: number) => void
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
-  const completedTasks = project.tasks.filter(task => task.status === 'completed').length
-  const totalTasks = project.tasks.length
+export default function ProjectCard({ project, onAddTask }: ProjectCardProps) {
+  const router = useRouter()
+  const setSelectedProject = useProjectStore(state => state.setSelectedProject)
+  
+  const completedTasks = (project.tasks || []).filter(task => task.status === 'completed').length
+  const totalTasks = (project.tasks || []).length
   const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+  
+  const handleProjectClick = () => {
+    setSelectedProject(project)
+    router.push(`/tasks?projectId=${project.id}`)
+  }
 
   return (
-    <div className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer">
+    <div 
+      onClick={handleProjectClick}
+      className="group bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 cursor-pointer"
+    >
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-3">
@@ -60,9 +76,20 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold text-gray-700">Recent Tasks</h4>
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-            {project.tasks.length} total
-          </span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onAddTask?.(project.id)
+              }}
+              className="text-xs bg-red-500 text-white px-2 py-1 rounded-full hover:bg-red-600 transition-colors"
+            >
+              + Add Task
+            </button>
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+              {project.tasks.length} total
+            </span>
+          </div>
         </div>
         
         {project.tasks.length > 0 ? (
@@ -99,9 +126,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         ) : (
           <div className="text-center py-4">
             <p className="text-sm text-gray-500">No tasks yet</p>
-            <button className="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-1">
-              Add first task
-            </button>
           </div>
         )}
       </div>
